@@ -1,0 +1,31 @@
+const mock = require('../../../../lib/mockData')
+const { initOraclePool, getConnection } = require('../../../../lib/oracle')
+
+async function handler(req, res) {
+  if (req.method !== 'PUT') return res.status(405).json({ success: false, error: 'METHOD_NOT_ALLOWED', message: 'Only PUT supported' })
+  const { id } = req.query
+  const { patient_id } = req.body || {}
+  if (!patient_id) return res.status(400).json({ success: false, error: 'MISSING_PARAM', message: 'patient_id required' })
+
+  const pool = await initOraclePool()
+  if (!pool) {
+    const appt = mock.appointments.find(a => String(a.appointment_id) === String(id))
+    if (!appt) return res.status(404).json({ success: false, error: 'NOT_FOUND', message: 'Appointment not found' })
+    if (String(appt.patient_id) !== String(patient_id)) return res.status(403).json({ success: false, error: 'FORBIDDEN', message: 'Patient mismatch' })
+    appt.status = 'Cancelled'
+    return res.json({ success: true, data: { appointment_id: appt.appointment_id }, message: 'Cancelled (demo)' })
+  }
+
+  let conn
+  try {
+    conn = await getConnection()
+    const result = await conn.execute(`UPDATE appointments SET status = 'Cancelled' WHERE appointment_id = :id AND patient_id = :pid`, { id, pid: patient_id }, { autoCommit: true })
+    if (result.rowsAffected === 0) return res.status(404).json({ success: false, error: 'NOT_FOUND', message: 'No appointment found for cancellation' })
+    return res.json({ success: true, data: { appointment_id: Number(id) }, message: 'Cancelled' })
+  } catch (err) {
+    console.error('PUT /api/appointments/[id]/cancel error', err)
+    return res.status(500).json({ success: false, error: 'DB_ERROR', message: 'Failed to cancel' })
+  } finally { if (conn) try { await conn.close() } catch (e) { console.error(e) } }
+}
+
+module.exports = handler
