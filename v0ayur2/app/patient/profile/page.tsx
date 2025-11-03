@@ -11,8 +11,8 @@ import { toast } from "react-toastify"
 
 const SIDEBAR_LINKS = [
   { label: "Dashboard", href: "/patient/dashboard", icon: "🏠" },
-  { label: "Appointments", href: "/patient/appointments", icon: "📅" },
-  { label: "Book", href: "/patient/book-appointment", icon: "➕" },
+  { label: "Book Appointment", href: "/patient/book-appointment", icon: "📅" },
+  { label: "My Appointments", href: "/patient/appointments", icon: "📋" },
   { label: "Profile", href: "/patient/profile", icon: "👤" },
 ]
 
@@ -33,25 +33,58 @@ export default function PatientProfilePage() {
   }, [])
 
   const fetchProfile = async () => {
+    setLoading(true)
     try {
-      // Try user profile endpoint first
-      const res = await apiClient.get("/user/profile")
-      if (res?.data) {
-        if (res.data.patientId) {
-          const p = await apiClient.get(`/patient/${res.data.patientId}`)
-          setPatient(p.data)
-          return
-        }
+      const token = localStorage.getItem("token")
+      if (!token) {
+        // keep the same behaviour as your useEffect check
+        setLoading(false)
+        router.push("/login")
+        return
       }
-    } catch (err) {
-      // ignore and fallback
-    }
 
-    try {
-      const p = await apiClient.get("/auth/register/patient")
-      if (p?.data?.patient) setPatient(p.data.patient)
-    } catch (e) {
-      console.error("[v0] fetch profile error:", e)
+      // Fire both calls in parallel and handle whichever succeeds.
+      const p1 = apiClient.get("/user/profile")
+      // don't call /patient/:id blindly here — we'll call it only if we get patientId
+      const userRes = await p1.catch((e) => ({ ok: false, error: e }))
+
+      let userData: any = null
+      if (userRes && userRes.data) {
+        userData = userRes.data
+      }
+
+      let patientData: any = {}
+      if (userData?.patientId) {
+        // use promise + catch so a failing patient call doesn't throw and stop everything
+        const patientRes = await apiClient.get(`/patient/${userData.patientId}`).catch((e) => ({ ok: false, error: e }))
+        if (patientRes && patientRes.data) patientData = patientRes.data
+      } else {
+        // if no patientId on user, optionally try fallback endpoint you have
+        const fallback = await apiClient.get("/auth/register/patient").catch(() => null)
+        if (fallback && fallback.data?.patient) patientData = fallback.data.patient
+      }
+
+      // Merge carefully: prefer contact from user (USERS table), else patient table
+      const merged = {
+        // patient table fields first
+        ...(patientData || {}),
+        // override/ensure name/email from user table if present
+        name: (userData && userData.name) || patientData.name || "",
+        email: (userData && userData.email) || patientData.email || "",
+        // contactNo could be on user or patient — prefer user, then patient
+        contactNo:
+          (userData && (userData.contactNo || userData.phone)) ||
+          patientData.contactNo ||
+          patientData.contact_no ||
+          "",
+        patientId: userData?.patientId ?? patientData?.patientId ?? null,
+        userId: userData?.userId ?? patientData?.userId ?? null,
+      }
+
+      setPatient(merged)
+    } catch (err) {
+      console.error("fetchProfile error:", err)
+      toast.error("Failed to load profile")
     } finally {
       setLoading(false)
     }
