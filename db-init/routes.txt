@@ -1,0 +1,69 @@
+🧭 ROUTE STRUCTURE (suggested REST API endpoints)
+🔐 AUTHENTICATION MODULE
+Route	Method	Description
+/auth/register	POST	Register a new patient account.
+/auth/login	POST	Login for any role (role detected after verification).
+/auth/logout	POST	Logout (invalidate session/token).
+/auth/forgot-password	POST	Send password reset email/link.
+/auth/reset-password/:token	POST	Reset password using token.
+👤 USER MANAGEMENT (base, used by all roles)
+Route	Method	Description
+/user/profile	GET	Get current logged-in user profile.
+/user/profile	PUT	Update profile info (generic fields: name, email, contact).
+🧑‍⚕️ DOCTOR MODULE
+Route	Method	Description
+/doctor/register	POST	Register a new doctor (admin-only).
+/doctor/login	POST	Login route for doctors (alternative UI).
+/doctor/:id	GET	Get doctor profile by ID.
+/doctor/:id	PUT	Update doctor info (admin or self).
+/doctor/:id/schedule	GET	Get doctor’s available slots.
+/doctor/:id/schedule	POST	Add/modify availability (doctor only).
+/doctor/:id/appointments	GET	View all appointments for this doctor.
+/doctor/:id/patients	GET	List all patients who had appointments with this doctor.
+🧍‍♀️ PATIENT MODULE
+Route	Method	Description
+/patient/register	POST	Register new patient account.
+/patient/login	POST	Patient login (alternative UI).
+/patient/:id	GET	Get patient profile (self or admin).
+/patient/:id	PUT	Update profile details (self).
+/patient/:id/appointments	GET	View patient’s booked appointments.
+/patient/:id/book	POST	Book appointment with a doctor.
+/patient/:id/history	GET	View appointment/medical history.
+📅 APPOINTMENT MODULE
+Route	Method	Description
+/appointment	GET	View all appointments (admin only).
+/appointment/:id	GET	View details of one appointment.
+/appointment	POST	Create appointment (patient).
+/appointment/:id	PUT	Modify appointment (doctor/admin).
+/appointment/:id	DELETE	Cancel appointment (patient/admin).
+⚙️ ADMIN MODULE
+Route	Method	Description
+/admin/login	POST	Admin login.
+/admin/dashboard	GET	Summary: number of doctors, patients, appointments.
+/admin/doctors	GET	View/manage all doctors.
+/admin/patients	GET	View/manage all patients.
+/admin/appointments	GET	View/manage all appointments.
+/admin/reports	GET	Generate analytics reports.
+🔄 AUTHENTICATION FLOW
+
+User logs in via /auth/login.
+
+Backend verifies credentials in USER table.
+
+System checks the user’s role via:
+
+PATIENT table → patient login
+
+DOCTOR table → doctor login
+
+USER.ROLE = 'ADMIN' → admin login
+
+Returns a JWT token (or session cookie) with the user’s role embedded.
+
+Each protected route checks token + role permissions.
+
+🧩 SAMPLE FRONTEND NAVIGATION
+Role	Default Landing Page	Menu Options
+Patient	/patient/dashboard	Book Appointment, View History, Profile
+Doctor	/doctor/dashboard	My Appointments, Availability, Patients
+Admin	/admin/dashboard	Manage Doctors, Patients, Reports, Appointments
