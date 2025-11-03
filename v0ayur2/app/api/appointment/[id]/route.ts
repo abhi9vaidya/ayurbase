@@ -52,8 +52,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const appointmentId = Number.parseInt(params.id);
-    const body = await request.json();
+    const { id } = await params
+    const appointmentId = Number.parseInt(id)
+    const body = await request.json()
     const { status } = body
 
     if (!status) {

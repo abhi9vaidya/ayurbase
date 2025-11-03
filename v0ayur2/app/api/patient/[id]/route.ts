@@ -2,12 +2,13 @@ import type { NextRequest } from "next/server"
 import { executeQuerySingle } from "@/lib/db"
 import { successResponse, errorResponse, verifyAuth, forbiddenResponse, hasRole } from "@/lib/auth"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const patientId = Number.parseInt(params.id)
+    const { id } = await params
+    const patientId = Number.parseInt(id)
 
     const patient = await executeQuerySingle(
       `SELECT p.PATIENT_ID, u.USER_ID, u.NAME, u.EMAIL, u.CONTACT_NO,
@@ -54,12 +55,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const patientId = Number.parseInt(params.id)
+    const { id } = await params
+    const patientId = Number.parseInt(id)
 
     // fetch patient owner to validate authorization (allow admin or owner)
     const owner = await executeQuerySingle("SELECT USER_ID FROM PATIENTS WHERE PATIENT_ID = :patientId", [patientId])

@@ -2,12 +2,13 @@ import type { NextRequest } from "next/server"
 import { executeQuerySingle } from "@/lib/db"
 import { successResponse, errorResponse, verifyAuth, forbiddenResponse, hasRole } from "@/lib/auth"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const doctorId = Number.parseInt(params.id)
+    const { id } = await params
+    const doctorId = Number.parseInt(id)
 
     if (!hasRole(user, "ADMIN") && user.doctorId !== doctorId) {
       return forbiddenResponse()
@@ -45,12 +46,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const doctorId = Number.parseInt(params.id)
+    const { id } = await params
+    const doctorId = Number.parseInt(id)
 
     if (!hasRole(user, "ADMIN") && user.doctorId !== doctorId) {
       return forbiddenResponse()
