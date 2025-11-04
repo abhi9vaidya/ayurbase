@@ -40,8 +40,10 @@ export async function POST(request: NextRequest) {
 
     // If doctor, verify they own this prescription
     if (hasRole(user, "DOCTOR")) {
-      const doctorId = await executeQuerySingle("SELECT DOCTOR_ID FROM DOCTORS WHERE USER_ID = :userId", [user.userId])
-      if (doctorId && doctorId[0] !== prescription[1]) {
+      const doctorIdRow = await executeQuerySingle("SELECT DOCTOR_ID FROM DOCTORS WHERE USER_ID = :userId", [user.userId])
+      const doctorId = doctorIdRow ? Number(String(doctorIdRow[0])) : null
+      const prescribedBy = prescription ? Number(String((prescription as any)[1])) : null
+      if (doctorId && prescribedBy && doctorId !== prescribedBy) {
         return forbiddenResponse()
       }
     }
@@ -126,8 +128,10 @@ export async function DELETE(request: NextRequest) {
 
     // If doctor, verify they own this prescription
     if (hasRole(user, "DOCTOR")) {
-      const doctorId = await executeQuerySingle("SELECT DOCTOR_ID FROM DOCTORS WHERE USER_ID = :userId", [user.userId])
-      if (doctorId && doctorId[0] !== prescription[1]) {
+      const doctorIdRow = await executeQuerySingle("SELECT DOCTOR_ID FROM DOCTORS WHERE USER_ID = :userId", [user.userId])
+      const doctorId = doctorIdRow ? Number(String(doctorIdRow[0])) : null
+      const prescribedBy = prescription ? Number(String((prescription as any)[1])) : null
+      if (doctorId && prescribedBy && doctorId !== prescribedBy) {
         return forbiddenResponse()
       }
     }

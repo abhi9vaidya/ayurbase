@@ -10,7 +10,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   // `params` should contain the dynamic segment (id) but sometimes (due to server/runtime differences)
   // it can be missing. Be defensive: prefer params.id, but fall back to parsing the pathname.
   // Also avoid using `await` on a non-promise value.
-  const idFromParams = params?.id
+  const paramsObj = await params
+  const idFromParams = paramsObj?.id
   const idFromPath = request.nextUrl?.pathname?.split("/")?.[3]
   const id = idFromParams ?? idFromPath
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     )
 
     const appointments =
-      result.rows?.map((row) => ({
+      result.rows?.map((row: any) => ({
         appointmentId: row[0],
         patientId: row[1],
         doctorId: row[2],

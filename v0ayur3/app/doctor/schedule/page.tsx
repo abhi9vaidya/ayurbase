@@ -1,7 +1,16 @@
 "use client"
 import React, { useEffect, useState, useCallback } from 'react'
 import apiClient from '@/lib/api-client'
-import NavBar from '@/components/NavBar'
+import NavBar from '@/app/components/nav-bar'
+import Sidebar from '@/components/Sidebar'
+
+const SIDEBAR_LINKS = [
+  { label: "Dashboard", href: "/doctor/dashboard", icon: "🏠" },
+  { label: "My Appointments", href: "/doctor/appointments", icon: "📅" },
+  { label: "Patients", href: "/doctor/patients", icon: "👥" },
+  { label: "Schedule", href: "/doctor/schedule", icon: "⏰" },
+  { label: "Profile", href: "/doctor/profile", icon: "👤" },
+]
 
 type Appt = {
   appointmentId: number
@@ -51,7 +60,9 @@ export default function DoctorSchedulePage() {
   return (
     <div>
       <NavBar />
-      <div className="p-6 max-w-3xl mx-auto">
+      <div className="flex">
+        <Sidebar links={SIDEBAR_LINKS} />
+           <div className="p-6 max-w-3xl mx-auto">
         <h1 className="text-2xl font-semibold mb-4">Schedule</h1>
 
         <div className="mb-6 border p-4 rounded">
@@ -82,6 +93,7 @@ export default function DoctorSchedulePage() {
           </div>
         </div>
       </div>
+        </div>
     </div>
   )
 }

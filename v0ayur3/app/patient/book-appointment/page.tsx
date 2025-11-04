@@ -15,6 +15,7 @@ const SIDEBAR_LINKS = [
   { label: "Dashboard", href: "/patient/dashboard", icon: "🏠" },
   { label: "Book Appointment", href: "/patient/book-appointment", icon: "📅" },
   { label: "My Appointments", href: "/patient/appointments", icon: "📋" },
+  { label: "My Prescriptions", href: "/patient/prescriptions", icon: "💊" },
   { label: "Profile", href: "/patient/profile", icon: "👤" },
 ]
 

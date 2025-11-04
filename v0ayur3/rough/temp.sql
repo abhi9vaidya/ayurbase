@@ -7,5 +7,6 @@ select * from patients;
 delete from users where email not like '%admin%' and email not like '%doctor%';
 delete from patients where user_id not in (select id from users where email like '%admin%' or email like '%doctor%');
 
+select * from prescriptions;
 
 commit;

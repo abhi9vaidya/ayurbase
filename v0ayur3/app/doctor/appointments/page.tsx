@@ -35,6 +35,8 @@ export default function DoctorAppointmentsPage() {
   const [prescriptioningId, setPrescriptioningId] = useState<number | null>(null)
   const [prescriptionData, setPrescriptionData] = useState<any>(null)
   const [fetchingPrescription, setFetchingPrescription] = useState(false)
+  // map appointmentId -> prescriptionId (or null)
+  const [prescriptionMap, setPrescriptionMap] = useState<Record<number, number | null>>({})
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -49,13 +51,32 @@ export default function DoctorAppointmentsPage() {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}")
       const response = await apiClient.get(`/doctor/${user.doctorId}/appointments`)
-      setAppointments(response.data.appointments || [])
+      const appts = response.data.appointments || []
+      setAppointments(appts)
+      // populate prescription map so UI can show Add vs Edit
+      fetchPrescriptionMapFor(appts)
     } catch (error: any) {
       toast.error("Failed to load appointments")
       console.error("[v0] Fetch appointments error:", error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchPrescriptionMapFor = async (appts: Appointment[]) => {
+    const map: Record<number, number | null> = {}
+    await Promise.all(
+      appts.map(async (a) => {
+        try {
+          const resp = await apiClient.get("/prescription", { params: { appointmentId: a.appointmentId } })
+          const pres = resp.data.prescriptions
+          map[a.appointmentId] = pres?.length > 0 ? pres[0].prescriptionId : null
+        } catch (err) {
+          map[a.appointmentId] = null
+        }
+      }),
+    )
+    setPrescriptionMap(map)
   }
 
   const handleStatusChange = async (appointmentId: number, newStatus: string) => {
@@ -73,24 +94,27 @@ export default function DoctorAppointmentsPage() {
     try {
       setFetchingPrescription(true)
 
-      // Check if prescription already exists for this appointment
-      let prescriptionId
-      try {
-        // Try to get existing prescription
-        const response = await apiClient.get("/prescription", {
-          params: { appointmentId },
-        })
-        if (response.data.prescriptions?.length > 0) {
-          prescriptionId = response.data.prescriptions[0].prescriptionId
-        } else {
-          // Create new prescription
-          const createResponse = await apiClient.post("/prescription", { appointmentId })
-          prescriptionId = createResponse.data.prescriptionId
+      // If we already know the prescriptionId from the map, use it.
+      let prescriptionId = prescriptionMap[appointmentId] ?? null
+
+      if (!prescriptionId) {
+        // double-check in case map is stale
+        try {
+          const existing = await apiClient.get("/prescription", { params: { appointmentId } })
+          if (existing.data.prescriptions?.length > 0) {
+            prescriptionId = existing.data.prescriptions[0].prescriptionId
+            setPrescriptionMap((prev) => ({ ...prev, [appointmentId]: prescriptionId }))
+          }
+        } catch (err) {
+          // ignore and continue to create
         }
-      } catch (error: any) {
+      }
+
+      if (!prescriptionId) {
         // Create new prescription
         const createResponse = await apiClient.post("/prescription", { appointmentId })
         prescriptionId = createResponse.data.prescriptionId
+        setPrescriptionMap((prev) => ({ ...prev, [appointmentId]: prescriptionId }))
       }
 
       // Fetch prescription details
@@ -232,7 +256,11 @@ export default function DoctorAppointmentsPage() {
                             disabled={fetchingPrescription}
                             className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm whitespace-nowrap"
                           >
-                            {fetchingPrescription ? "Loading..." : "Add Prescription"}
+                            {fetchingPrescription
+                              ? "Loading..."
+                              : prescriptionMap[appointment.appointmentId]
+                              ? "Edit Prescription"
+                              : "Add Prescription"}
                           </Button>
                         )}
                       </div>

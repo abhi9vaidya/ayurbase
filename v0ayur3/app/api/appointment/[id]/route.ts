@@ -7,7 +7,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const appointmentId = Number.parseInt(params.id)
+  const { id } = await params
+  const appointmentId = Number.parseInt(id)
 
     const appointment = await executeQuerySingle(
       `SELECT a.APPOINTMENT_ID, a.PATIENT_ID, a.DOCTOR_ID, a.APPT_DATE,
@@ -98,7 +99,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const appointmentId = Number.parseInt(params.id)
+    const {id} = await params;
+    const appointmentId = Number.parseInt(id)
 
     const appointment = await executeQuerySingle(
       "SELECT PATIENT_ID FROM APPOINTMENTS WHERE APPOINTMENT_ID = :appointmentId",

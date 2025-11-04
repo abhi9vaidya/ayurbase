@@ -30,6 +30,7 @@ interface Prescription {
   appointmentId: number
   doctorName: string
   notes: string
+  notesParsed?: any
   createdOn: string
   medicines: Medicine[]
 }
@@ -87,7 +88,7 @@ export default function PatientPrescriptionsPage() {
       )
       .join("")
 
-    const content = `
+  const content = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -119,7 +120,10 @@ export default function PatientPrescriptionsPage() {
           </tr>
           ${medicinesHtml}
         </table>
-        ${prescription.notes ? `<div class="notes"><strong>Notes:</strong> ${prescription.notes}</div>` : ""}
+  ${(() => {
+        const notesStr = prescription.notesParsed ? JSON.stringify(prescription.notesParsed, null, 2) : (prescription.notes || "")
+        return notesStr ? `<div class="notes"><strong>Notes:</strong> ${notesStr}</div>` : ""
+      })()}
         <div style="margin-top: 40px; text-align: center;">
           <p style="color: #666; font-size: 12px;">This is a digital prescription. Please consult your doctor if you have any queries.</p>
         </div>
@@ -199,10 +203,10 @@ export default function PatientPrescriptionsPage() {
                       )}
                     </div>
 
-                    {selectedPrescription.notes && (
+                    {(selectedPrescription.notesParsed || selectedPrescription.notes) && (
                       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                         <h3 className="font-semibold text-slate-900 mb-2">Doctor's Notes</h3>
-                        <p className="text-slate-700">{selectedPrescription.notes}</p>
+                        <pre className="text-slate-700 whitespace-pre-wrap">{selectedPrescription.notesParsed ? JSON.stringify(selectedPrescription.notesParsed, null, 2) : selectedPrescription.notes}</pre>
                       </div>
                     )}
                   </div>

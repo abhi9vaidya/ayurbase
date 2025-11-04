@@ -8,7 +8,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const medicineId = Number.parseInt(params.id)
+  const { id } = await params
+  const medicineId = Number.parseInt(id)
 
     const medicine = await executeQuerySingle(
       "SELECT MEDICINE_ID, NAME, FORM, DETAILS FROM MEDICINE WHERE MEDICINE_ID = :medicineId",
@@ -40,7 +41,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return forbiddenResponse()
     }
 
-    const medicineId = Number.parseInt(params.id)
+  const { id } = await params
+  const medicineId = Number.parseInt(id)
     const body = await request.json()
     const { name, form, details } = body
 
@@ -89,7 +91,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return forbiddenResponse()
     }
 
-    const medicineId = Number.parseInt(params.id)
+  const { id } = await params
+  const medicineId = Number.parseInt(id)
 
     const medicine = await executeQuerySingle("SELECT MEDICINE_ID FROM MEDICINE WHERE MEDICINE_ID = :medicineId", [
       medicineId,
