@@ -7,7 +7,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const prescriptionId = Number.parseInt(params.id)
+  const { id } = await params
+  const prescriptionId = Number.parseInt(id)
 
     const prescription = await executeQuerySingle(
       `SELECT pr.PRESCRIPTION_ID, pr.APPOINTMENT_ID, pr.PRESCRIBED_BY,
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     )
 
     const medicines =
-      medicinesResult.rows?.map((row) => ({
+      medicinesResult.rows?.map((row: any) => ({
         medicineId: row[0],
         name: row[1],
         dose: row[2],

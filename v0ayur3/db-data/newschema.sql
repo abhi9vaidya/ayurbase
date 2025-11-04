@@ -153,3 +153,28 @@ CREATE INDEX IDX_MEDICINE_NAME ON MEDICINE (NAME);
 -- Prescription-Med join indexes
 CREATE INDEX IDX_PM_PRESCRIPTION ON PRESCRIPTION_MED (PRESCRIPTION_ID);
 CREATE INDEX IDX_PM_MEDICINE ON PRESCRIPTION_MED (MEDICINE_ID);
+
+-- Create directory (run once)
+CREATE OR REPLACE DIRECTORY USER_LOG_DIR AS '/home/oracle/logs';
+CREATE OR REPLACE TRIGGER trg_user_log
+AFTER INSERT ON USERS
+FOR EACH ROW
+DECLARE
+    f  UTL_FILE.FILE_TYPE;
+BEGIN
+    f := UTL_FILE.FOPEN('USER_LOG_DIR', 'user_log.txt', 'a');
+    UTL_FILE.PUT_LINE(f,
+        'New user: ' || :NEW.NAME ||
+        ' | Email: ' || :NEW.EMAIL ||
+        ' | Role: ' || :NEW.ROLE ||
+        ' | Time: ' || TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+    );
+    UTL_FILE.FCLOSE(f);
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL; 
+END;
+/
+
+
+select * from tab;
