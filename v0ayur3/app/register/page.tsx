@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -48,9 +46,9 @@ export default function RegisterPage() {
       localStorage.setItem("user", JSON.stringify(user))
       localStorage.setItem("role", user.role)
 
-  toast.success("Registration successful!")
-  // After creating the user, send them to the patient details step
-  router.push("/register/patient")
+      toast.success("Registration successful!")
+      // After creating the user, send them to the patient details step
+      router.push("/register/patient")
     } catch (error: any) {
       const message = error.response?.data?.error || "Registration failed"
       toast.error(message)

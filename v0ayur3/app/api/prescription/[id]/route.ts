@@ -74,7 +74,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const user = verifyAuth(request)
     if (!user) return forbiddenResponse()
 
-    const prescriptionId = Number.parseInt(params.id)
+    const {id} = await params;
+    const prescriptionId = Number.parseInt(id)
 
     const prescription = await executeQuerySingle(
       `SELECT pr.PRESCRIPTION_ID, pr.APPOINTMENT_ID, pr.PRESCRIBED_BY,

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import NavBar from "@/app/components/nav-bar"
-import Sidebar from "@/app/components/sidebar"
+import NavBar from "@/components/NavBar"
+import Sidebar from "@/components/Sidebar"
 import { Button } from "@/components/ui/button"
 import apiClient from "@/lib/api-client"
 import { toast } from "react-toastify"
@@ -13,6 +13,7 @@ const SIDEBAR_LINKS = [
   { label: "Doctors", href: "/admin/doctors", icon: "👨‍⚕️" },
   { label: "Patients", href: "/admin/patients", icon: "🧑‍🤝‍🧑" },
   { label: "Appointments", href: "/admin/appointments", icon: "📅" },
+  { label: "Medicines", href: "/admin/medicines", icon: "💊" },
   { label: "Reports", href: "/admin/reports", icon: "📊" },
 ]
 

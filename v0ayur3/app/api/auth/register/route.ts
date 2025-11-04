@@ -6,7 +6,7 @@ import { isValidEmail, isValidPhone, isStrongPassword, validateRequired } from "
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, password, contactNo, role = "PATIENT" } = body
+    const { name, email, password, contactNo, role = "PATIENT", specialization } = body
 
     if (!validateRequired(body, ["name", "email", "password", "contactNo"])) {
       return errorResponse("All fields are required")
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password)
 
-    const result = await executeQuery(
+    await executeQuery(
       `INSERT INTO USERS (NAME, EMAIL, PASSWORD, ROLE, CONTACT_NO) 
        VALUES (:name, :email, :password, :role, :contactNo)`,
       [name, email, hashedPassword, role, contactNo],
@@ -47,22 +47,10 @@ export async function POST(request: NextRequest) {
       return errorResponse("Failed to create user", 500)
     }
 
-    // If the registered user is a patient, ensure a PATIENTS row exists
-    // let patientId: number | undefined = undefined
-    // if (user[3] === "PATIENT") {
-    //   const existingPatient = await executeQuerySingle("SELECT PATIENT_ID FROM PATIENTS WHERE USER_ID = :userId", [
-    //     user[0],
-    //   ])
-    //   if (!existingPatient) {
-    //     // create a minimal patient record (other details can be completed later)
-    //     await executeQuery(
-    //       `INSERT INTO PATIENTS (USER_ID) VALUES (:userId)`,
-    //       [user[0]],
-    //     )
-    //   }
-    //   const p = await executeQuerySingle("SELECT PATIENT_ID FROM PATIENTS WHERE USER_ID = :userId", [user[0]])
-    //   if (p) patientId = p[0]
-    // }
+    // If doctor, create a DOCTORS row
+    if (role === 'DOCTOR') {
+      await executeQuery(`INSERT INTO DOCTORS (USER_ID, SPECIALIZATION) VALUES (:userId, :specialization)`, [user[0], specialization || null])
+    }
 
     const token = generateToken({
       userId: user[0],

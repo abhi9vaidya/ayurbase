@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import NavBar from "@/app/components/nav-bar"
-import Sidebar from "@/app/components/sidebar"
+import NavBar from "@/components/NavBar"
+import Sidebar from "@/components/Sidebar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import apiClient from "@/lib/api-client"
